@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import * as Cesium from 'cesium';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [viewer, setViewer] = useState<Cesium.Viewer | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initViewer = async () => {
+      const terrainProvider = await Cesium.createWorldTerrainAsync();
+
+      if (!isMounted) return;
+
+      const viewerInstance = new Cesium.Viewer('cesiumContainer', {
+        terrainProvider,
+      });
+
+      viewerInstance.scene.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(127.0, 37.5, 1500000),
+      });
+
+      setViewer(viewerInstance);
+    };
+
+    initViewer();
+
+    return () => {
+      isMounted = false;
+      if (viewer) {
+        viewer.destroy();
+      }
+    };
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div
+      id="cesiumContainer"
+      style={{ width: '100vw', height: '100vh', display: 'block' }}
+    />
+  );
 }
 
-export default App
+export default App;
