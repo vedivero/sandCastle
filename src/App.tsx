@@ -14,11 +14,37 @@ function App() {
 
       const viewerInstance = new Cesium.Viewer('cesiumContainer', {
         terrainProvider,
+        animation:false,
+        timeline:false
       });
 
       viewerInstance.scene.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(127.0, 37.5, 1500000),
+        destination:Cesium.Cartesian3.fromDegrees(0,0,20000000)
       });
+
+
+      setTimeout(()=>{
+        if(!navigator.geolocation){
+          console.warn("GeoLocation을 지원하지 않습니다.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position)=>{
+            const { latitude, longitude } = position.coords;
+
+            viewerInstance.camera.flyTo({
+              destination:Cesium.Cartesian3.fromDegrees(longitude,latitude,100000),
+              duration:2
+            })
+          },
+          (error)=>{
+            console.error("현재 위치를 가져오지 못했습니다.",error)
+          }
+        )
+
+      },1000)
+
 
       setViewer(viewerInstance);
     };
